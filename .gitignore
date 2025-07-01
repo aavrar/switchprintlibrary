@@ -49,6 +49,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+.mteb_cache/
+.lince_cache/
 cover/
 
 # Translations
@@ -373,3 +375,6 @@ test_*.py
 *_test.py
 optimization_*.py
 comprehensive_*.py
+
+plan.txt
+switchprint_performance_report.txt

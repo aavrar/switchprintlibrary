@@ -323,8 +323,8 @@ class OptimizedCodeSwitchDetector:
             best_lang = max(function_matches.keys(), key=lambda x: function_matches[x])
             confidence = min(function_matches[best_lang] / len(words), 1.0) * 0.95  # High confidence for function words
             user_langs_normalized = [self._normalize_language_code(ul) for ul in user_languages]
-            if best_lang in user_langs_normalized:
-                confidence = min(confidence * 1.1, 1.0)
+            if best_lang in user_langs_normalized and best_lang != 'en':
+                confidence = min(confidence * 1.2, 1.0)
             return (best_lang, confidence)
         
         # 3. Check language-specific patterns (medium confidence)
@@ -374,15 +374,18 @@ class OptimizedCodeSwitchDetector:
         
         for i, word in enumerate(words):
             # Detect language for current word with context
-            context_start = max(0, i - 2)
-            context_end = min(len(words), i + 3)
+            context_start = max(0, i - 1)
+            context_end = min(len(words), i + 2)
             context_text = ' '.join(words[context_start:context_end])
             
             detected_lang, confidence = self._detect_by_patterns(context_text, user_languages)
             
-            # Boost confidence for user languages
+            # Boost confidence for user languages, especially non-English
             if detected_lang in user_langs_normalized:
-                confidence = min(confidence * 1.2, 1.0)
+                if detected_lang != 'en':
+                    confidence = min(confidence * 1.5, 1.0)
+                else:
+                    confidence = min(confidence * 1.1, 1.0)
             
             # Only create new phrase if language changes AND confidence is sufficient
             if (detected_lang != current_language and 

@@ -83,6 +83,34 @@ class ConversationMemory:
                 CREATE INDEX IF NOT EXISTS idx_timestamp ON conversations(timestamp)
             """)
     
+    def create_and_store_conversation(self, text: str, user_id: str, switch_stats: Dict,
+                                     session_id: str = None, metadata: Dict = None) -> str:
+        """Helper method to create and store a conversation entry.
+        
+        Args:
+            text: Conversation text
+            user_id: User identifier
+            switch_stats: Code-switching statistics
+            session_id: Optional session identifier
+            metadata: Optional metadata (not used in storage but can be passed)
+            
+        Returns:
+            Entry ID of the stored conversation.
+        """
+        import datetime
+        import uuid
+        
+        entry = ConversationEntry(
+            text=text,
+            user_id=user_id,
+            switch_stats=switch_stats,
+            timestamp=datetime.datetime.now(),
+            session_id=session_id or str(uuid.uuid4()),
+            embeddings={}  # Will be generated automatically
+        )
+        
+        return self.store_conversation(entry)
+
     def store_conversation(self, entry: ConversationEntry) -> str:
         """Store a conversation entry.
         

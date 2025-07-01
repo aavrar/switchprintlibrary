@@ -2,8 +2,18 @@
 
 import re
 from typing import List, Dict, Tuple, Optional
+from dataclasses import dataclass
 from langdetect import detect, detect_langs, DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
+
+
+@dataclass
+class DetectionResult:
+    """Result from language detection."""
+    detected_languages: List[str]
+    confidence: float
+    probabilities: Dict[str, float]
+    method: str = "langdetect"
 
 
 class LanguageDetector:
@@ -125,6 +135,50 @@ class LanguageDetector:
         
         cleaned_text = re.sub(r'[^\w\s]', '', text).strip()
         return len(cleaned_text) >= self.minimum_text_length
+    
+    def detect_language(self, text: str, user_languages: Optional[List[str]] = None) -> DetectionResult:
+        """Detect language using langdetect with standardized interface.
+        
+        Args:
+            text: Input text to analyze.
+            user_languages: Optional list of user languages (not used in base detector).
+            
+        Returns:
+            DetectionResult object with detected languages and confidence.
+        """
+        if not self._is_valid_text(text):
+            return DetectionResult(
+                detected_languages=[],
+                confidence=0.0,
+                probabilities={},
+                method="langdetect"
+            )
+        
+        try:
+            # Get primary language
+            primary_lang = detect(text)
+            
+            # Get all languages with confidence
+            lang_probs = detect_langs(text)
+            probabilities = {lang.lang: lang.prob for lang in lang_probs}
+            
+            # Get confidence for primary language
+            confidence = probabilities.get(primary_lang, 0.0)
+            
+            return DetectionResult(
+                detected_languages=[primary_lang],
+                confidence=confidence,
+                probabilities=probabilities,
+                method="langdetect"
+            )
+            
+        except LangDetectException:
+            return DetectionResult(
+                detected_languages=[],
+                confidence=0.0,
+                probabilities={},
+                method="langdetect"
+            )
     
     def _split_into_sentences(self, text: str) -> List[str]:
         """Split text into sentences using simple rules.

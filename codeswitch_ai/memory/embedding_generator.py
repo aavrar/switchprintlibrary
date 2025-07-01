@@ -10,7 +10,7 @@ import json
 class EmbeddingGenerator:
     """Generates embeddings for text with code-switching awareness."""
     
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"):
         """Initialize the embedding generator.
         
         Args:

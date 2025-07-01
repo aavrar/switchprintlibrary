@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Setup script for the Code-Switch Aware AI Library."""
+"""Setup script for SwitchPrint - Multilingual Code-Switching Detection Library."""
 
 from setuptools import setup, find_packages
 import os
@@ -66,22 +66,22 @@ OPTIONAL_REQUIREMENTS['all'] = (
 )
 
 setup(
-    name='codeswitch-ai',
+    name='switchprint',
     version=get_version(),
-    author='Code-Switch AI Project',
-    author_email='contact@codeswitch-ai.org',
-    description='A comprehensive Python library for multilingual code-switching detection and analysis',
+    author='Aahad Vakani',
+    author_email='contact@aahadvakani.com',
+    description='A state-of-the-art Python library for detecting, analyzing, and remembering multilingual code-switching patterns in text',
     long_description=get_long_description(),
     long_description_content_type='text/markdown',
-    url='https://github.com/codeswitch-ai/codeswitch-ai',
+    url='https://github.com/aahadvakani/switchprint',
     project_urls={
-        'Bug Reports': 'https://github.com/codeswitch-ai/codeswitch-ai/issues',
-        'Source': 'https://github.com/codeswitch-ai/codeswitch-ai',
-        'Documentation': 'https://docs.codeswitch-ai.org',
+        'Bug Reports': 'https://github.com/aahadvakani/switchprint/issues',
+        'Source': 'https://github.com/aahadvakani/switchprint',
+        'Documentation': 'https://github.com/aahadvakani/switchprint#readme',
     },
     packages=find_packages(),
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
@@ -102,7 +102,7 @@ setup(
     extras_require=OPTIONAL_REQUIREMENTS,
     entry_points={
         'console_scripts': [
-            'codeswitch-ai=codeswitch_ai.interface.cli:main',
+            'switchprint=codeswitch_ai.interface.cli:main',
         ],
     },
     include_package_data=True,
