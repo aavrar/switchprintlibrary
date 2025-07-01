@@ -2,11 +2,14 @@
 
 This document provides comprehensive examples and real-world use cases for SwitchPrint.
 
+**Installation**: `pip install switchprint[all]`
+
 ## 🚀 Quick Start Examples
 
 ### Basic Language Detection
 
 ```python
+# Install: pip install switchprint
 from codeswitch_ai import EnsembleDetector
 
 # Initialize detector

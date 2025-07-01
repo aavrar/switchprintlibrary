@@ -1,8 +1,10 @@
-"""Constants and configuration for the Code-Switch AI Library."""
+"""Constants and configuration for the SwitchPrint Library."""
 
 # Version information
 VERSION = "2.0.0"
 AUTHOR = "Aahad Vakani"
+PYPI_URL = "https://pypi.org/project/switchprint/"
+PACKAGE_NAME = "switchprint"
 
 # Performance thresholds
 CONFIDENCE_THRESHOLDS = {

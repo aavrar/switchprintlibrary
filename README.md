@@ -2,10 +2,12 @@
 
 A state-of-the-art Python library for detecting, analyzing, and remembering multilingual code-switching patterns in text. Built with cutting-edge NLP techniques, featuring FastText integration, transformer models, and GPU-accelerated retrieval.
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/aavrar/switchprintlibrary)
+[![PyPI version](https://badge.fury.io/py/switchprint.svg)](https://badge.fury.io/py/switchprint)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/switchprint)](https://pypi.org/project/switchprint/)
 [![Python](https://img.shields.io/badge/python-3.8+-brightgreen.svg)](https://python.org)
 [![Tests](https://img.shields.io/badge/tests-17%2F20%20passing-green.svg)](tests/)
 [![Performance](https://img.shields.io/badge/speed-80x%20faster-red.svg)](README.md#performance)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🌟 Features
 
@@ -55,6 +57,8 @@ A state-of-the-art Python library for detecting, analyzing, and remembering mult
 
 ## 📋 Installation
 
+SwitchPrint is now **officially available on PyPI**! 🎉
+
 ### PyPI Installation (Recommended)
 ```bash
 # Basic installation
@@ -69,6 +73,11 @@ pip install switchprint[transformers]
 # Full installation with all features
 pip install switchprint[all]
 ```
+
+**📦 Package Information:**
+- **PyPI**: [https://pypi.org/project/switchprint/](https://pypi.org/project/switchprint/)
+- **Latest Version**: 2.0.0 (Published July 1, 2025)
+- **Automated Publishing**: Via GitHub Actions on release
 
 ### Development Installation
 ```bash
@@ -275,6 +284,20 @@ The `EnhancedCodeSwitchDetector` builds upon the TypeScript services analysis wi
 ## 🧪 Testing & Validation
 
 ### Quick Start Testing
+
+**From PyPI Installation:**
+```bash
+# Install and test immediately
+pip install switchprint[all]
+
+# Test basic functionality
+python -c "from codeswitch_ai import EnsembleDetector; d = EnsembleDetector(); print(d.detect_language('Hello world!'))"
+
+# Use CLI interface
+switchprint  # Available after installation
+```
+
+**From Source (Development):**
 ```bash
 # Run comprehensive enhanced demo (recommended)
 python enhanced_example.py
@@ -485,8 +508,9 @@ If you use this library in research, please cite:
   author={Aahad Vakani},
   version={2.0.0},
   year={2025},
-  url={https://github.com/aavrar/switchprintlibrary},
-  note={Features FastText integration (85.98\% accuracy), mBERT transformer support, and GPU-accelerated FAISS retrieval}
+  url={https://pypi.org/project/switchprint/},
+  publisher={PyPI},
+  note={Features FastText integration (85.98\% accuracy), mBERT transformer support, and GPU-accelerated FAISS retrieval. Available via pip install switchprint}
 }
 ```
 

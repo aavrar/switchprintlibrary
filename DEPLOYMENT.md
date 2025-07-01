@@ -4,6 +4,18 @@ Comprehensive deployment guide for SwitchPrint in production environments.
 
 ## 🚀 Quick Deployment
 
+### PyPI Installation (Recommended)
+```bash
+# Production deployment with all features
+pip install switchprint[all]
+
+# Minimal deployment
+pip install switchprint
+
+# With specific features
+pip install switchprint[fasttext,transformers]
+```
+
 ### Docker Deployment
 ```dockerfile
 FROM python:3.9-slim
@@ -17,11 +29,10 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install SwitchPrint from PyPI
+RUN pip install --no-cache-dir switchprint[all]
 
-# Copy application code
+# Copy your application code (if extending SwitchPrint)
 COPY . .
 
 # Create non-root user for security
