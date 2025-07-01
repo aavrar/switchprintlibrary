@@ -436,6 +436,18 @@ class EnhancedCodeSwitchDetector:
         
         return result
     
+    def detect_code_switching(self, text: str, user_languages: List[str] = None) -> EnhancedDetectionResult:
+        """Detect code-switching in text (alias for analyze_with_user_guidance).
+        
+        Args:
+            text: Input text to analyze.
+            user_languages: List of languages the user typically uses.
+            
+        Returns:
+            EnhancedDetectionResult with detailed analysis.
+        """
+        return self.analyze_with_user_guidance(text, user_languages)
+    
     def get_detection_statistics(self, result: EnhancedDetectionResult) -> Dict[str, any]:
         """Get detailed statistics about the detection result."""
         language_counts = {}

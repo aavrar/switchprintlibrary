@@ -97,6 +97,26 @@ class EmbeddingGenerator:
         
         return normalize([combined])[0]
     
+    def generate_embeddings(self, text: str, switch_stats: Dict = None) -> Dict[str, np.ndarray]:
+        """Generate embeddings for text (compatibility method).
+        
+        Args:
+            text: Input text.
+            switch_stats: Code-switching statistics (optional).
+            
+        Returns:
+            Dict with different types of embeddings.
+        """
+        embeddings = {
+            "semantic": self.generate_text_embedding(text)
+        }
+        
+        if switch_stats:
+            embeddings["style"] = self.generate_style_embedding(switch_stats)
+            embeddings["combined"] = self.generate_combined_embedding(text, switch_stats)
+        
+        return embeddings
+    
     def generate_conversation_embedding(self, conversation_data: Dict) -> Dict[str, np.ndarray]:
         """Generate embeddings for a complete conversation entry.
         

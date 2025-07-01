@@ -53,11 +53,28 @@ A state-of-the-art Python library for detecting, analyzing, and remembering mult
 - **Security Monitoring**: Real-time threat detection and audit logging
 - **Production-Ready**: Enterprise-grade security features for deployment
 
-## 📋 Requirements
+## 📋 Installation
 
-Install dependencies:
+### PyPI Installation (Recommended)
 ```bash
-pip install -r requirements.txt
+# Basic installation
+pip install switchprint
+
+# With FastText high-performance detection
+pip install switchprint[fasttext]
+
+# With transformer support (mBERT, XLM-R)
+pip install switchprint[transformers]
+
+# Full installation with all features
+pip install switchprint[all]
+```
+
+### Development Installation
+```bash
+git clone https://github.com/aahadvakani/switchprint.git
+cd switchprint
+pip install -e .[dev]
 ```
 
 ### Dependencies

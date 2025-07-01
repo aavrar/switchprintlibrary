@@ -53,6 +53,11 @@ class ValidationResult:
     def is_safe(self) -> bool:
         """Check if input is considered safe."""
         return self.status in [ValidationStatus.PASSED, ValidationStatus.WARNING]
+    
+    @property
+    def is_valid(self) -> bool:
+        """Check if input is valid (alias for is_safe)."""
+        return self.is_safe()
 
 
 @dataclass

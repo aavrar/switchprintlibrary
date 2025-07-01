@@ -41,6 +41,7 @@ class TransformerDetector(LanguageDetector):
         self.max_length = max_length
         self.batch_size = batch_size
         self.cache_size = cache_size
+        self.detector_type = "transformer"  # Add detector type attribute
         
         # Set device
         if device is None:

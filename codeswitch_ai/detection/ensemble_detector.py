@@ -47,6 +47,7 @@ class EnsembleDetector(LanguageDetector):
         self.use_fasttext = use_fasttext
         self.use_transformer = use_transformer
         self.ensemble_strategy = ensemble_strategy
+        self.detector_type = "ensemble"  # Add detector type attribute
         
         # Initialize detectors
         self.detectors = {}
@@ -249,13 +250,16 @@ class EnsembleDetector(LanguageDetector):
         if not combined_probs:
             return {'languages': [], 'confidence': 0.0, 'probabilities': {}}
         
-        # Get top languages
-        sorted_langs = sorted(combined_probs.items(), key=lambda x: x[1], reverse=True)
-        top_language = sorted_langs[0][0] if sorted_langs else ""
+        # Get all languages above a certain probability threshold
+        detected_languages = [lang for lang, prob in combined_probs.items() if prob > 0.1] # Threshold can be tuned
+        detected_languages = sorted(detected_languages, key=lambda lang: combined_probs[lang], reverse=True)
+        
+        # Calculate overall confidence based on the sum of probabilities of detected languages
+        overall_confidence = sum(combined_probs[lang] for lang in detected_languages)
         
         return {
-            'languages': [top_language] if top_language else [],
-            'confidence': total_confidence,
+            'languages': detected_languages,
+            'confidence': overall_confidence,
             'probabilities': combined_probs
         }
     

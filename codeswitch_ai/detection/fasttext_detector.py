@@ -28,6 +28,9 @@ class FastTextDetector(LanguageDetector):
         self.model_path = model_path
         self.model = None
         self.cache_size = cache_size
+        self.detector_type = "fasttext"  # Add detector type attribute
+        self.buffer_size = 10  # Add buffer_size for streaming compatibility
+        self.overlap_ratio = 0.2  # Add overlap_ratio for streaming compatibility
         self._load_model()
         
         # Enhanced language code mapping

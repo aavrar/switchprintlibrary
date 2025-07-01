@@ -500,10 +500,20 @@ class OptimizedCodeSwitchDetector:
         overall_confidence = total_confidence / len(phrases) if phrases else 0.0
         
         # Get detected languages
-        detected_languages = list(set(
-            phrase['language'] for phrase in phrases 
+        # Get detected languages above confidence threshold
+        detected_languages = [
+            phrase['language'] for phrase in phrases
             if phrase['language'] != 'unknown' and phrase['confidence'] >= self.medium_confidence_threshold
-        ))
+        ]
+
+        # Fallback: use highest-confidence language if none pass threshold
+        if not detected_languages and phrases:
+            top_phrase = max(phrases, key=lambda p: p['confidence'])
+            if top_phrase['language'] != 'unknown':
+                detected_languages = [top_phrase['language']]
+
+        # Ensure uniqueness
+        detected_languages = list(set(detected_languages))
         
         # Check for romanization and native scripts
         romanization_detected = any(

@@ -334,11 +334,16 @@ class CustomModelTrainer:
 class FastTextDomainTrainer:
     """FastText trainer for domain-specific models."""
     
-    def __init__(self):
-        """Initialize FastText trainer."""
+    def __init__(self, config: Optional[FineTuningConfig] = None):
+        """Initialize FastText trainer.
+        
+        Args:
+            config: Optional configuration (for compatibility).
+        """
         if not FASTTEXT_AVAILABLE:
             raise ImportError("FastText required for training")
         
+        self.config = config  # Store config for potential future use
         self.model = None
         self.training_file = None
     

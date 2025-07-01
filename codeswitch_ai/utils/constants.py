@@ -2,7 +2,7 @@
 
 # Version information
 VERSION = "2.0.0"
-AUTHOR = "Code-Switch AI Project"
+AUTHOR = "Aahad Vakani"
 
 # Performance thresholds
 CONFIDENCE_THRESHOLDS = {

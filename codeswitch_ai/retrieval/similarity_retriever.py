@@ -87,7 +87,7 @@ class SimilarityRetriever:
             print(f"Built {emb_type} index with {len(embeddings)} vectors.")
     
     def search_similar(self, query_embedding: np.ndarray, embedding_type: str = "combined",
-                      user_id: str = None, k: int = 5) -> List[Tuple[ConversationEntry, float]]:
+                      user_id: str = None, k: int = 5, limit: int = None) -> List[Tuple[ConversationEntry, float]]:
         """Search for similar conversations.
         
         Args:
@@ -95,10 +95,14 @@ class SimilarityRetriever:
             embedding_type: Type of embedding to search with.
             user_id: Optional user ID for user-specific search.
             k: Number of similar conversations to return.
+            limit: Alias for k parameter (for API compatibility).
             
         Returns:
             List of (ConversationEntry, similarity_score) tuples.
         """
+        # Use limit if provided, otherwise use k
+        if limit is not None:
+            k = limit
         index_key = f"{embedding_type}_{user_id or 'global'}"
         
         if index_key not in self.indices:
