@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "switchprint"
-version = "2.0.0"
+version = "2.0.1"
 description = "A state-of-the-art Python library for detecting, analyzing, and remembering multilingual code-switching patterns in text"
 readme = "README.md"
 license = {text = "MIT"}

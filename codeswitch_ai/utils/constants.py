@@ -1,7 +1,7 @@
 """Constants and configuration for the SwitchPrint Library."""
 
 # Version information
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 AUTHOR = "Aahad Vakani"
 PYPI_URL = "https://pypi.org/project/switchprint/"
 PACKAGE_NAME = "switchprint"
