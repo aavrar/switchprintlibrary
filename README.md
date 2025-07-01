@@ -2,7 +2,7 @@
 
 A state-of-the-art Python library for detecting, analyzing, and remembering multilingual code-switching patterns in text. Built with cutting-edge NLP techniques, featuring FastText integration, transformer models, and GPU-accelerated retrieval.
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/your-repo/switchprint)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/aavrar/switchprintlibrary)
 [![Python](https://img.shields.io/badge/python-3.8+-brightgreen.svg)](https://python.org)
 [![Tests](https://img.shields.io/badge/tests-17%2F20%20passing-green.svg)](tests/)
 [![Performance](https://img.shields.io/badge/speed-80x%20faster-red.svg)](README.md#performance)
@@ -468,7 +468,7 @@ If you use this library in research, please cite:
   author={Aahad Vakani},
   version={2.0.0},
   year={2025},
-  url={https://github.com/your-repo/switchprint},
+  url={https://github.com/aavrar/switchprintlibrary},
   note={Features FastText integration (85.98\% accuracy), mBERT transformer support, and GPU-accelerated FAISS retrieval}
 }
 ```
