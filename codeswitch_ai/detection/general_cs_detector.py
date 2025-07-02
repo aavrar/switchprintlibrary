@@ -20,6 +20,7 @@ import numpy as np
 from typing import List, Dict, Optional, Tuple, Any
 from dataclasses import dataclass, asdict
 import json
+from functools import lru_cache
 
 from .language_detector import LanguageDetector, DetectionResult
 from .fasttext_detector import FastTextDetector
@@ -56,6 +57,17 @@ class GeneralCSResult:
     is_code_mixed: bool
     quality_metrics: Dict[str, Any]
     debug_info: Dict[str, Any]
+    
+    def to_detection_result(self) -> DetectionResult:
+        """Convert to standard DetectionResult for API compatibility."""
+        return DetectionResult(
+            detected_languages=self.detected_languages,
+            confidence=self.confidence,
+            probabilities=self.probabilities,
+            method=self.method,
+            switch_points=[sp.get('position', 0) for sp in self.switch_points],
+            token_languages=[wa.final_prediction for wa in self.word_analyses if wa.final_prediction != 'unknown']
+        )
 
 class GeneralCodeSwitchingDetector(LanguageDetector):
     """
@@ -70,7 +82,9 @@ class GeneralCodeSwitchingDetector(LanguageDetector):
                  transformer_model: str = "papluca/xlm-roberta-base-language-detection",
                  threshold_mode: DetectionMode = DetectionMode.HIGH_RECALL,
                  enable_word_analysis: bool = True,
-                 min_confidence_for_detection: float = 0.3):
+                 min_confidence_for_detection: float = 0.3,
+                 performance_mode: str = "balanced",
+                 detector_mode: str = "code_switching"):
         """Initialize general code-switching detector.
         
         Args:
@@ -79,12 +93,46 @@ class GeneralCodeSwitchingDetector(LanguageDetector):
             threshold_mode: Detection threshold mode (HIGH_RECALL recommended for CS)
             enable_word_analysis: Enable word-level analysis for CS detection
             min_confidence_for_detection: Minimum confidence to include a language
+            performance_mode: "fast" (FastText only), "balanced" (optimized), "accurate" (full analysis)
+            detector_mode: "code_switching" (optimized for CS), "monolingual" (optimized for single language), "multilingual" (general multilingual)
         """
         super().__init__()
         
         # Configuration
         self.enable_word_analysis = enable_word_analysis
         self.min_confidence = min_confidence_for_detection
+        self.detector_mode = detector_mode
+        
+        # Configure detector based on mode
+        if detector_mode == "monolingual":
+            # Optimized for single language detection
+            self.enable_word_analysis = False  # Disable word analysis for speed
+            threshold_mode = DetectionMode.HIGH_PRECISION  # Higher precision for monolingual
+            self.min_confidence = 0.5  # Higher confidence threshold
+        elif detector_mode == "multilingual":
+            # General multilingual but not optimized for code-switching
+            threshold_mode = DetectionMode.BALANCED
+            self.min_confidence = 0.4
+        # else: "code_switching" keeps original settings
+        
+        # Performance optimization settings based on mode
+        self.performance_mode = performance_mode
+        if performance_mode == "fast":
+            self.use_word_caching = True
+            self.word_cache = {}
+            self.batch_transformer_analysis = False
+            self.max_words_for_transformer = 0  # No transformer for words
+            use_transformer = False  # Override transformer setting
+        elif performance_mode == "balanced":
+            self.use_word_caching = True
+            self.word_cache = {}
+            self.batch_transformer_analysis = True
+            self.max_words_for_transformer = 10
+        else:  # accurate
+            self.use_word_caching = True
+            self.word_cache = {}
+            self.batch_transformer_analysis = False
+            self.max_words_for_transformer = 50
         
         # Initialize threshold configuration (use HIGH_RECALL to avoid ensemble sabotage)
         self.threshold_config = ThresholdConfig(threshold_mode)
@@ -106,9 +154,12 @@ class GeneralCodeSwitchingDetector(LanguageDetector):
         else:
             print("✓ General CS detector initialized (FastText only)")
         
+        print(f"  Detector mode: {detector_mode}")
+        print(f"  Performance mode: {performance_mode}")
         print(f"  Threshold mode: {threshold_mode.value}")
-        print(f"  Word analysis: {'Enabled' if enable_word_analysis else 'Disabled'}")
-        print(f"  Min confidence: {min_confidence_for_detection}")
+        print(f"  Word analysis: {'Enabled' if self.enable_word_analysis else 'Disabled'}")
+        print(f"  Min confidence: {self.min_confidence}")
+        print(f"  Max words for transformer: {self.max_words_for_transformer}")
     
     def detect_language(self, text: str, user_languages: Optional[List[str]] = None) -> GeneralCSResult:
         """Detect code-switching using general approach with rich observability."""
@@ -144,6 +195,11 @@ class GeneralCodeSwitchingDetector(LanguageDetector):
         
         return final_result
     
+    def detect_language_standard(self, text: str, user_languages: Optional[List[str]] = None) -> DetectionResult:
+        """Detect language with standard DetectionResult for API compatibility."""
+        result = self.detect_language(text, user_languages)
+        return result.to_detection_result()
+    
     def _get_text_level_prediction(self, text: str) -> Dict[str, Any]:
         """Get text-level language prediction."""
         # FastText prediction
@@ -174,34 +230,26 @@ class GeneralCodeSwitchingDetector(LanguageDetector):
         return text_prediction
     
     def _analyze_words(self, text: str) -> List[WordAnalysis]:
-        """Analyze individual words for language detection."""
+        """Analyze individual words for language detection with performance optimizations."""
         words = re.findall(r'\b\w+\b', text)  # Extract words
         word_analyses = []
         
-        for i, word in enumerate(words):
-            # Skip very short words (likely to be unreliable)
-            if len(word) < 2:
-                continue
-            
-            # FastText prediction for word
-            try:
-                ft_result = self.fasttext.detect_language(word)
-                ft_lang = ft_result.detected_languages[0] if ft_result.detected_languages else 'unknown'
-                ft_conf = ft_result.confidence
-            except:
-                ft_lang, ft_conf = 'unknown', 0.0
-            
-            # Transformer prediction for word (optional)
-            trans_lang, trans_conf = None, None
-            if self.transformer:
-                try:
-                    trans_result = self.transformer(word)
-                    if isinstance(trans_result, list):
-                        trans_result = trans_result[0]
-                    trans_lang = trans_result['label'].lower()
-                    trans_conf = trans_result['score']
-                except:
-                    pass
+        # Filter and prepare words for analysis
+        words_to_analyze = [(i, word) for i, word in enumerate(words) if len(word) >= 2]
+        
+        if not words_to_analyze:
+            return word_analyses
+        
+        # Get FastText predictions for all words (this is fast)
+        ft_predictions = self._get_fasttext_predictions(words_to_analyze)
+        
+        # Get transformer predictions (with optimizations)
+        trans_predictions = self._get_transformer_predictions(words_to_analyze) if self.transformer else {}
+        
+        # Combine results
+        for i, word in words_to_analyze:
+            ft_lang, ft_conf = ft_predictions.get(word, ('unknown', 0.0))
+            trans_lang, trans_conf = trans_predictions.get(word, (None, None))
             
             # Decide final prediction
             final_lang, final_conf, reasoning = self._decide_word_prediction(
@@ -223,6 +271,76 @@ class GeneralCodeSwitchingDetector(LanguageDetector):
             word_analyses.append(word_analysis)
         
         return word_analyses
+    
+    def _get_fasttext_predictions(self, words_to_analyze: List[Tuple[int, str]]) -> Dict[str, Tuple[str, float]]:
+        """Get FastText predictions for words with caching."""
+        predictions = {}
+        
+        for i, word in words_to_analyze:
+            # Check cache first
+            if self.use_word_caching and word.lower() in self.word_cache:
+                predictions[word] = self.word_cache[word.lower()]
+                continue
+            
+            # Get FastText prediction
+            try:
+                ft_result = self.fasttext.detect_language(word)
+                ft_lang = ft_result.detected_languages[0] if ft_result.detected_languages else 'unknown'
+                ft_conf = ft_result.confidence
+                result = (ft_lang, ft_conf)
+                
+                # Cache result for future use
+                if self.use_word_caching:
+                    self.word_cache[word.lower()] = result
+                
+                predictions[word] = result
+            except:
+                predictions[word] = ('unknown', 0.0)
+        
+        return predictions
+    
+    def _get_transformer_predictions(self, words_to_analyze: List[Tuple[int, str]]) -> Dict[str, Tuple[Optional[str], Optional[float]]]:
+        """Get transformer predictions with performance optimizations."""
+        predictions = {}
+        
+        # Limit transformer analysis for performance
+        if len(words_to_analyze) > self.max_words_for_transformer:
+            # Only analyze first N words and last N words
+            words_to_analyze = words_to_analyze[:self.max_words_for_transformer//2] + words_to_analyze[-self.max_words_for_transformer//2:]
+        
+        # Batch process if possible (not all transformers support this well)
+        if self.batch_transformer_analysis and len(words_to_analyze) <= 5:
+            try:
+                words = [word for i, word in words_to_analyze]
+                results = self.transformer(words)
+                
+                for (i, word), result in zip(words_to_analyze, results):
+                    if isinstance(result, list):
+                        result = result[0]
+                    predictions[word] = (result['label'].lower(), result['score'])
+                    
+            except Exception as e:
+                # Fall back to individual processing
+                return self._get_transformer_predictions_individual(words_to_analyze)
+        else:
+            return self._get_transformer_predictions_individual(words_to_analyze)
+        
+        return predictions
+    
+    def _get_transformer_predictions_individual(self, words_to_analyze: List[Tuple[int, str]]) -> Dict[str, Tuple[Optional[str], Optional[float]]]:
+        """Get transformer predictions individually."""
+        predictions = {}
+        
+        for i, word in words_to_analyze:
+            try:
+                trans_result = self.transformer(word)
+                if isinstance(trans_result, list):
+                    trans_result = trans_result[0]
+                predictions[word] = (trans_result['label'].lower(), trans_result['score'])
+            except:
+                predictions[word] = (None, None)
+        
+        return predictions
     
     def _decide_word_prediction(self, ft_lang: str, ft_conf: float,
                               trans_lang: Optional[str], trans_conf: Optional[float]) -> Tuple[str, float, str]:
@@ -437,40 +555,44 @@ class GeneralCodeSwitchingDetector(LanguageDetector):
         return export_data
 
 def main():
-    """Test the general code-switching detector."""
+    """Test the general code-switching detector with different modes."""
     print("🌍 Testing General Code-Switching Detector")
     print("=" * 50)
     
-    detector = GeneralCodeSwitchingDetector()
-    
-    # Test with various language pairs (not just Hindi-English)
-    test_cases = [
-        "Good morning! Comment allez-vous?",  # English-French
-        "Hola amigo, how are you today?",     # Spanish-English  
-        "Guten Tag, this is very schön!",    # German-English
-        "Hello world, bonjour monde",        # English-French
-        "This is completely English text",    # Monolingual
-        "Ich bin sehr happy heute"           # German-English
+    # Test different detector modes
+    test_texts = [
+        ("This is completely English text", "monolingual"),
+        ("Hello amigo, comment allez-vous?", "code_switching"),
+        ("Je parle français et español también", "multilingual")
     ]
     
-    for i, text in enumerate(test_cases, 1):
-        print(f"\n📝 Test {i}: \"{text}\"")
+    detector_modes = ["monolingual", "multilingual", "code_switching"]
+    
+    print("\n🎯 DETECTOR MODE COMPARISON:")
+    print("=" * 50)
+    
+    for text, expected_type in test_texts:
+        print(f"\n📝 Text ({expected_type}): \"{text}\"")
+        print("-" * 40)
         
-        result = detector.detect_language(text)
-        
-        print(f"Languages: {result.detected_languages}")
-        print(f"Code-mixed: {result.is_code_mixed}")
-        print(f"Confidence: {result.confidence:.3f}")
-        print(f"Switch points: {len(result.switch_points)}")
-        
-        # Show quality metrics
-        print(f"Quality metrics:")
-        for metric, value in result.quality_metrics.items():
-            print(f"  {metric}: {value}")
-        
-        # Export analysis (for observability)
-        analysis = detector.export_analysis(result, include_debug=False)
-        print(f"Exportable analysis: {len(json.dumps(analysis))} chars")
+        for mode in detector_modes:
+            detector = GeneralCodeSwitchingDetector(
+                detector_mode=mode, 
+                performance_mode="fast"  # Use fast mode for quick testing
+            )
+            
+            import time
+            start_time = time.time()
+            result = detector.detect_language(text)
+            end_time = time.time()
+            
+            print(f"{mode:>15}: {result.detected_languages} ({result.confidence:.2f}) - {(end_time-start_time)*1000:.1f}ms")
+    
+    print("\n" + "=" * 50)
+    print("✅ Detector configuration complete!")
+    print("🔍 Use 'monolingual' mode for single language detection")
+    print("🌍 Use 'multilingual' mode for general multilingual text")
+    print("🔄 Use 'code_switching' mode for code-switching detection")
 
 if __name__ == "__main__":
     main()

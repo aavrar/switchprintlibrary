@@ -43,6 +43,33 @@ from .retrieval import SimilarityRetriever, OptimizedSimilarityRetriever
 # CLI interface
 from .interface import CLI
 
+# Dashboard and observability  
+from .dashboard import MetricsDashboard, DashboardMetrics
+
+# Error analysis and advanced detection components
+from .analysis import (
+    ErrorAnalyzer, ErrorCase, ErrorPattern, ErrorAnalysisResult,
+    IntegratedImprovedDetector, IntegratedResult,  # NEW: Production-ready integrated detector
+    ConfidenceCalibrator, CalibrationResult, CalibrationMetrics  # NEW: Confidence calibration
+)
+
+# High-performance processing
+from .processing import (
+    HighPerformanceBatchProcessor, BatchConfig, BatchMetrics, BatchResult  # NEW: Batch processing optimization
+)
+
+# Context optimization
+from .optimization import (
+    ContextWindowOptimizer, ContextConfig, ContextualWordAnalysis, ContextOptimizationResult, TextType  # NEW: Context window optimization
+)
+
+# Enhanced detection with context
+try:
+    from .detection.context_enhanced_detector import ContextEnhancedCSDetector  # NEW: Context-enhanced detector
+    CONTEXT_ENHANCEMENT_AVAILABLE = True
+except ImportError:
+    CONTEXT_ENHANCEMENT_AVAILABLE = False
+
 # Evaluation frameworks (optional imports)
 try:
     from .evaluation import LinCEBenchmark, MTEBEvaluator, ConfidenceCalibrator
@@ -130,7 +157,35 @@ __all__ = [
     "OptimizedSimilarityRetriever",
     
     # Interface
-    "CLI"
+    "CLI",
+    
+    # Dashboard
+    "MetricsDashboard",
+    "DashboardMetrics",
+    
+    # Error Analysis & Advanced Detection
+    "ErrorAnalyzer",
+    "ErrorCase", 
+    "ErrorPattern",
+    "ErrorAnalysisResult",
+    "IntegratedImprovedDetector",  # NEW: Production-ready integrated detector
+    "IntegratedResult",            # NEW: Enhanced result with calibration
+    "ConfidenceCalibrator",        # NEW: Advanced confidence calibration
+    "CalibrationResult",
+    "CalibrationMetrics",
+    
+    # High-Performance Processing
+    "HighPerformanceBatchProcessor",  # NEW: Optimized batch processing
+    "BatchConfig",
+    "BatchMetrics", 
+    "BatchResult",
+    
+    # Context Optimization
+    "ContextWindowOptimizer",         # NEW: Context window optimization
+    "ContextConfig",
+    "ContextualWordAnalysis",
+    "ContextOptimizationResult",
+    "TextType"
 ]
 
 # Add optional components to __all__ if available
@@ -160,3 +215,6 @@ if SECURITY_AVAILABLE:
         "PrivacyProtector", "DataAnonymizer", "PIIDetector", "PrivacyConfig", "PrivacyLevel",
         "SecurityMonitor", "SecurityEvent", "ThreatDetector", "AuditLogger"
     ])
+
+if CONTEXT_ENHANCEMENT_AVAILABLE:
+    __all__.extend(["ContextEnhancedCSDetector"])

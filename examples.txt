@@ -1,0 +1,79 @@
+🔹 Really Short (1–3 tokens)
+Yallah chalein
+
+Let's go
+
+Bhai pls
+
+Hola friend
+
+Jaldi bro
+
+饭好了 (Chinese for “Food is ready”)
+
+Ok चलो (Hindi-English)
+
+🚗 jaa (Emoji + Urdu verb)
+
+🔹 Short (4–6 tokens)
+I need chai right now
+
+She said vamos juntos
+
+Wo keh raha tha stop
+
+Aaj toh full chill scene
+
+Bus stop pe milte hain
+
+Un café aur ek donut please
+
+🔹 Medium (7–12 tokens)
+Can you please mujhe ek pen de do?
+
+He was like mujhe samajh nahi aaya bro
+
+Mamá is calling, jaldi aa jao
+
+Aaj ki meeting Zoom pe hogi, right?
+
+Abbu told me to be back by maghrib
+
+La niña is crying because uska toy tut gaya
+
+🔹 Long (13+ tokens)
+I was walking to class jab mujhe yaad aaya ke I forgot my laptop at home
+
+Even though she speaks fluent English, ghar pe toh sirf Marathi bolti hai
+
+Mujhe lagta hai ke if we try hard, we can still submit before the deadline
+
+Tu bata, should we even go if sab log already reached the venue?
+
+🔹 Edge Cases & Special Constructs
+🧪 Token Mixing + Punctuation:
+Chalein? Or should we wait for bhai?
+
+Brooooo 😭 kal ka test cancel hua kya??
+
+He was like, "Aaj toh pura scene on hai."
+
+🧪 Named Entities & Abbreviations:
+I'm heading to HBL ke ATM se cash lene
+
+Kya tumhe BTS ka naya gana pasand aaya?
+
+🧪 Romanized with Phonetic Drift:
+Kal college mai fresherz party hai
+
+Tumein toh bss faltu ka kaam hi karna hota
+
+🧪 Typo/Misspelling + Emojis:
+mujhe nahi pata 😭 mai kya bolu now
+
+Chalo lets gooo yaarrr plsss
+
+🧪 Full Romanized Non-English:
+Tumhara naam kya hai aur tum kidhar rehte ho?
+
+Mujhe pata nahi tha ke aaj chhutti hai
