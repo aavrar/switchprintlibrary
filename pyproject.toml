@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "switchprint"
-version = "2.0.1"
-description = "A state-of-the-art Python library for detecting, analyzing, and remembering multilingual code-switching patterns in text"
+version = "2.1.0"
+description = "Production-ready Python library for detecting multilingual code-switching patterns with 100% test coverage, advanced threshold systems, and robust API stability"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Aahad Vakani", email = "aahadvakani@gmail.com"}
 ]

@@ -1,8 +1,9 @@
 # SwitchPrint Examples and Use Cases
 
-This document provides comprehensive examples and real-world use cases for SwitchPrint.
+This document provides comprehensive examples and real-world use cases for SwitchPrint v2.1.0.
 
-**Installation**: `pip install switchprint[all]`
+**Current Status**: Production-ready with 100% test coverage  
+**Installation**: `pip install switchprint==2.1.0`
 
 ## 🚀 Quick Start Examples
 

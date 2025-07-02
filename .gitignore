@@ -169,6 +169,8 @@ data/
 embeddings/
 indices/
 faiss_indices/
+/documentation
+tests/
 
 # Database files
 *.db

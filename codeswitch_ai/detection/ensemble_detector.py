@@ -9,6 +9,7 @@ from functools import lru_cache
 from .language_detector import LanguageDetector, DetectionResult
 from .fasttext_detector import FastTextDetector
 from .transformer_detector import TransformerDetector
+from ..utils.thresholds import ThresholdConfig, DetectionMode
 
 
 @dataclass
@@ -22,6 +23,7 @@ class EnsembleResult:
     switch_points: List[Tuple[int, str, str, float]]
     phrases: List[Dict[str, Any]]
     final_method: str
+    quality_info: Optional[Dict[str, Any]] = None  # New field for quality validation
 
 
 class EnsembleDetector(LanguageDetector):
@@ -32,7 +34,10 @@ class EnsembleDetector(LanguageDetector):
                  use_transformer: bool = True,
                  transformer_model: str = "bert-base-multilingual-cased",
                  ensemble_strategy: str = "weighted_average",
-                 cache_size: int = 1000):
+                 cache_size: int = 1000,
+                 threshold_mode: DetectionMode = DetectionMode.BALANCED,
+                 custom_thresholds: Optional[ThresholdConfig] = None,
+                 short_text_fallback: bool = True):
         """Initialize ensemble detector.
         
         Args:
@@ -41,13 +46,23 @@ class EnsembleDetector(LanguageDetector):
             transformer_model: Which transformer model to use
             ensemble_strategy: Strategy for combining results ('weighted_average', 'voting', 'confidence_based')
             cache_size: Size of LRU cache
+            threshold_mode: Detection mode for threshold configuration
+            custom_thresholds: Custom threshold configuration (overrides threshold_mode)
+            short_text_fallback: Enable transformer fallback for short texts when use_transformer=False
         """
         super().__init__()
         
         self.use_fasttext = use_fasttext
         self.use_transformer = use_transformer
         self.ensemble_strategy = ensemble_strategy
+        self.short_text_fallback = short_text_fallback
         self.detector_type = "ensemble"  # Add detector type attribute
+        
+        # Initialize threshold configuration
+        if custom_thresholds:
+            self.threshold_config = custom_thresholds
+        else:
+            self.threshold_config = ThresholdConfig(threshold_mode)
         
         # Initialize detectors
         self.detectors = {}
@@ -69,14 +84,15 @@ class EnsembleDetector(LanguageDetector):
             except Exception as e:
                 print(f"⚠ Transformer detector failed to load: {e}")
         
-        # Rule-based detector (always available)
+        # Rule-based detector (minimal weight to avoid degrading performance)
         self.detectors['rules'] = self._create_rule_based_detector()
         
         # Ensemble weights (can be learned/tuned)
+        # Reduced rule weight since FastText performs excellently
         self.base_weights = {
-            'fasttext': 0.4,
-            'transformer': 0.4,
-            'rules': 0.2
+            'fasttext': 0.7,
+            'transformer': 0.25,
+            'rules': 0.05
         }
         
         # Dynamic weight adjustment factors
@@ -152,6 +168,8 @@ class EnsembleDetector(LanguageDetector):
     def detect_language(self, text: str, user_languages: Optional[List[str]] = None) -> EnsembleResult:
         """Detect language using ensemble approach."""
         if not text.strip():
+            # Handle empty text with proper quality info
+            empty_quality = self.threshold_config.validate_confidence([], 0.0, 0)
             return EnsembleResult(
                 detected_languages=[],
                 confidence=0.0,
@@ -160,12 +178,29 @@ class EnsembleDetector(LanguageDetector):
                 ensemble_weights={},
                 switch_points=[],
                 phrases=[],
-                final_method='ensemble-empty'
+                final_method='ensemble-empty',
+                quality_info=empty_quality
             )
         
-        # Get results from each detector
+        # Check if we need transformer fallback for short text
+        text_length = len(text.split())
+        is_short_text = text_length < 5
+        
+        # Get results from each detector (with short text fallback logic)
         method_results = {}
-        for name, detector in self.detectors.items():
+        active_detectors = self.detectors.copy()
+        
+        # Enable transformer fallback for short texts if configured
+        if (is_short_text and self.short_text_fallback and 
+            not self.use_transformer and 'transformer' not in active_detectors):
+            try:
+                # Temporarily load transformer for short text
+                active_detectors['transformer'] = TransformerDetector(cache_size=100)
+                print("⚡ Enabled transformer fallback for short text")
+            except Exception as e:
+                print(f"⚠ Could not enable transformer fallback: {e}")
+        
+        for name, detector in active_detectors.items():
             try:
                 result = detector.detect_language(text, user_languages)
                 method_results[name] = result
@@ -203,6 +238,14 @@ class EnsembleDetector(LanguageDetector):
         # Create phrase clusters
         phrases = self._create_phrase_clusters(text, combined_result['probabilities'])
         
+        # Validate confidence and get quality information
+        text_length = len(text.split()) if text.strip() else 0
+        quality_info = self.threshold_config.validate_confidence(
+            combined_result['languages'], 
+            combined_result['confidence'],
+            text_length
+        )
+        
         return EnsembleResult(
             detected_languages=combined_result['languages'],
             confidence=combined_result['confidence'],
@@ -211,7 +254,8 @@ class EnsembleDetector(LanguageDetector):
             ensemble_weights=ensemble_weights,
             switch_points=switch_points,
             phrases=phrases,
-            final_method='ensemble-' + self.ensemble_strategy
+            final_method='ensemble-' + self.ensemble_strategy,
+            quality_info=quality_info
         )
     
     def _combine_results(self, 
@@ -250,12 +294,16 @@ class EnsembleDetector(LanguageDetector):
         if not combined_probs:
             return {'languages': [], 'confidence': 0.0, 'probabilities': {}}
         
-        # Get all languages above a certain probability threshold
-        detected_languages = [lang for lang, prob in combined_probs.items() if prob > 0.1] # Threshold can be tuned
+        # Get all languages above dynamic threshold
+        threshold = self.threshold_config.get_inclusion_threshold()
+        detected_languages = [lang for lang, prob in combined_probs.items() if prob > threshold]
         detected_languages = sorted(detected_languages, key=lambda lang: combined_probs[lang], reverse=True)
         
-        # Calculate overall confidence based on the sum of probabilities of detected languages
-        overall_confidence = sum(combined_probs[lang] for lang in detected_languages)
+        # (B) Language Pair Validation: Apply validation and penalization
+        detected_languages = self._validate_language_pairs(detected_languages, combined_probs)
+        
+        # Calculate overall confidence as the maximum probability (not sum, which can exceed 1.0)
+        overall_confidence = max(combined_probs[lang] for lang in detected_languages) if detected_languages else 0.0
         
         return {
             'languages': detected_languages,
@@ -321,6 +369,52 @@ class EnsembleDetector(LanguageDetector):
             'confidence': best_result.confidence,
             'probabilities': best_result.probabilities
         }
+    
+    def _validate_language_pairs(self, detected_languages: List[str], probabilities: Dict[str, float]) -> List[str]:
+        """Validate and filter unlikely language combinations."""
+        if len(detected_languages) <= 1:
+            return detected_languages
+        
+        # (B) Language Pair Validation: Define unlikely pairs
+        INVALID_PAIRS = {
+            frozenset(['fr', 'sw']),  # French + Swahili 
+            frozenset(['es', 'ja']),  # Spanish + Japanese
+            frozenset(['de', 'zh']),  # German + Chinese
+            frozenset(['en', 'th']),  # English + Thai (unless in Thailand)
+            frozenset(['it', 'vi']),  # Italian + Vietnamese
+        }
+        
+        # Common code-switching pairs (prioritize these)
+        COMMON_PAIRS = {
+            frozenset(['en', 'es']),  # English + Spanish
+            frozenset(['en', 'fr']),  # English + French
+            frozenset(['en', 'de']),  # English + German
+            frozenset(['es', 'pt']),  # Spanish + Portuguese
+            frozenset(['hi', 'en']),  # Hindi + English
+            frozenset(['zh', 'en']),  # Chinese + English
+        }
+        
+        # Check for invalid pairs and penalize
+        lang_set = frozenset(detected_languages[:2])  # Check top 2 languages
+        
+        if lang_set in INVALID_PAIRS:
+            # Keep only the highest confidence language
+            return [detected_languages[0]]
+        
+        if lang_set in COMMON_PAIRS:
+            # Boost confidence for common pairs (already selected, just return as-is)
+            return detected_languages
+        
+        # For other pairs, apply conservative filtering if confidence gap is small
+        if len(detected_languages) >= 2:
+            primary_conf = probabilities.get(detected_languages[0], 0)
+            secondary_conf = probabilities.get(detected_languages[1], 0)
+            
+            # If secondary language has very low confidence relative to primary, remove it
+            if secondary_conf < primary_conf * 0.3:
+                return [detected_languages[0]]
+        
+        return detected_languages
     
     def _create_phrase_clusters(self, text: str, probabilities: Dict[str, float]) -> List[Dict[str, Any]]:
         """Create phrase clusters based on language probabilities."""

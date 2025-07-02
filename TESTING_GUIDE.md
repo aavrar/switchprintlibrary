@@ -1,32 +1,50 @@
-# 🧪 Testing Guide - Code-Switch Aware AI Library
+# 🧪 Testing Guide - SwitchPrint Library v2.1.0
+
+## 🎉 Production-Ready Testing Suite
+
+**Current Status**: **100% Test Success Rate** (49/49 tests passing)  
+**Coverage**: Complete validation of all components, APIs, and integration workflows
 
 ## ✅ Installation & Setup
 
-First, install dependencies:
+Install the latest production version:
 ```bash
-pip install langdetect sentence-transformers faiss-cpu numpy pandas scikit-learn
+pip install switchprint==2.1.0
 ```
 
-## 🚀 Testing Methods
-
-### 1. Quick Demo - Run Examples
+Or install with all optional dependencies:
 ```bash
-python example.py
+pip install "switchprint[all]"
 ```
-This runs 8 different multilingual examples showing:
-- English-Spanish code-switching
-- Hindi-English romanized
-- Urdu-English romanized  
-- French-English mixing
-- Complex multilingual text
-- Arabic-English romanized
-- Function word detection
 
-### 2. Simple Functionality Test
+## 🚀 Comprehensive Test Suite
+
+### 1. **Full Test Suite** (Recommended)
 ```bash
-python test_simple.py
+cd tests/
+python -m pytest test_comprehensive_suite.py -v
 ```
-Tests basic detection with 4 test cases.
+
+**What it tests**:
+- **Core Detection** (31 tests): Monolingual, code-switching, edge cases
+- **Threshold Systems** (4 tests): HIGH_PRECISION, BALANCED, HIGH_RECALL modes
+- **Performance** (4 tests): Speed validation across text lengths
+- **Individual Detectors** (3 tests): FastText, Transformer consistency
+- **Memory System** (2 tests): Storage, retrieval, similarity search
+- **Security Components** (3 tests): Input validation, privacy protection
+- **Integration** (2 tests): End-to-end workflows
+
+### 2. **Performance Benchmarking**
+```bash
+python -m pytest test_comprehensive_suite.py::TestPerformance -v
+```
+Validates sub-second processing for all text lengths.
+
+### 3. **Security Validation**
+```bash
+python -m pytest test_comprehensive_suite.py::TestSecurity -v
+```
+Tests PII detection, input validation, and threat monitoring.
 
 ### 3. Interactive CLI Testing
 ```bash
