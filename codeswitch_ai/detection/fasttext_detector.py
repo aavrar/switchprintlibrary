@@ -141,7 +141,7 @@ class FastTextDetector(LanguageDetector):
             return ([], [])
     
     def detect_language(self, text: str, user_languages: Optional[List[str]] = None) -> DetectionResult:
-        """Detect language using FastText with enhanced accuracy."""
+        """Detect language using FastText with code-mixing support."""
         if not text.strip():
             return DetectionResult(
                 detected_languages=[],
@@ -150,6 +150,12 @@ class FastTextDetector(LanguageDetector):
                 method='fasttext'
             )
         
+        # Check for code-mixing using token-level analysis
+        token_analysis = self._analyze_tokens(text)
+        if token_analysis['is_code_mixed']:
+            return self._handle_code_mixed_text(text, token_analysis, user_languages)
+        
+        # Standard single-language detection
         labels, scores = self._detect_single_cached(text)
         
         if not labels:
@@ -170,8 +176,16 @@ class FastTextDetector(LanguageDetector):
             if primary_language in user_lang_codes:
                 primary_confidence = min(1.0, primary_confidence * 1.15)
         
+        # Check for secondary languages using confidence thresholds
+        detected_languages = [primary_language]
+        multilingual_threshold = 0.15  # Languages above this threshold are included
+        
+        for i, (lang, score) in enumerate(zip(labels[1:3], scores[1:3]), 1):
+            if score > multilingual_threshold and lang != primary_language:
+                detected_languages.append(lang)
+        
         return DetectionResult(
-            detected_languages=[primary_language],
+            detected_languages=detected_languages,
             confidence=float(primary_confidence),
             probabilities=probabilities,
             method='fasttext'
@@ -205,6 +219,133 @@ class FastTextDetector(LanguageDetector):
         }
         
         return normalization_map.get(language, language)
+    
+    def _analyze_tokens(self, text: str) -> Dict:
+        """Analyze text at token level for code-mixing detection."""
+        tokens = text.split()
+        if len(tokens) < 2:
+            return {'is_code_mixed': False, 'token_languages': [], 'switch_points': []}
+        
+        # Romanization patterns for common code-mixed languages (very specific)
+        romanization_patterns = {
+            'hindi': ['aaj', 'kal', 'main', 'yaar', 'hoon', 'gayi', 'gaya', 'kaisa', 'kaise', 'accha', 'acchi', 'raha', 'rahi'],
+            'urdu': ['aap', 'kya'],
+            'arabic': ['qad', 'lam', 'lan']
+        }
+        
+        token_languages = []
+        romanization_count = 0
+        
+        for token in tokens:
+            # Clean token
+            clean_token = re.sub(r'[^\w]', '', token.lower())
+            if not clean_token:
+                token_languages.append('unknown')
+                continue
+            
+            # Check for romanization patterns
+            token_lang = None
+            for lang, patterns in romanization_patterns.items():
+                if clean_token in patterns:
+                    token_lang = lang
+                    romanization_count += 1
+                    break
+            
+            # If no romanization match, use FastText on individual token
+            if not token_lang:
+                try:
+                    labels, scores = self._detect_single_cached(token, k=3)
+                    # Higher confidence threshold to avoid false positives
+                    if labels and scores[0] > 0.6:  # Increased from 0.3 to 0.6
+                        token_lang = labels[0]
+                    else:
+                        token_lang = 'unknown'
+                except:
+                    token_lang = 'unknown'
+            
+            token_languages.append(token_lang)
+        
+        # Detect switch points and code-mixing
+        switch_points = []
+        unique_languages = set(lang for lang in token_languages if lang != 'unknown')
+        
+        for i in range(1, len(token_languages)):
+            if (token_languages[i] != token_languages[i-1] and 
+                token_languages[i] != 'unknown' and 
+                token_languages[i-1] != 'unknown'):
+                switch_points.append(i)
+        
+        # More conservative code-mixing detection
+        detected_romanization = romanization_count >= 1  # At least 1 romanized token
+        is_code_mixed = (
+            (len(unique_languages) > 1 and len(switch_points) > 0) or  # Multiple languages AND switches
+            (detected_romanization and len(unique_languages) > 0)      # Romanization detected
+        )
+        
+        return {
+            'is_code_mixed': is_code_mixed,
+            'token_languages': token_languages,
+            'switch_points': switch_points,
+            'unique_languages': list(unique_languages),
+            'romanization_detected': detected_romanization
+        }
+    
+    def _handle_code_mixed_text(self, text: str, token_analysis: Dict, user_languages: Optional[List[str]] = None) -> DetectionResult:
+        """Handle code-mixed text with specialized logic."""
+        # Get overall text-level detection
+        labels, scores = self._detect_single_cached(text)
+        if not labels:
+            return DetectionResult(
+                detected_languages=[],
+                confidence=0.0,
+                probabilities={},
+                method='fasttext'
+            )
+        
+        probabilities = dict(zip(labels, scores))
+        
+        # Combine text-level and token-level languages
+        detected_languages = []
+        
+        # Add primary text-level language
+        primary_language = labels[0]
+        primary_confidence = scores[0]
+        detected_languages.append(primary_language)
+        
+        # Add languages from token analysis with estimated probabilities
+        for lang in token_analysis['unique_languages']:
+            # Normalize language codes
+            normalized_lang = self._normalize_language_code(lang)
+            if normalized_lang not in detected_languages and lang != 'unknown':
+                detected_languages.append(normalized_lang)
+                
+                # Add to probabilities with estimated score based on token frequency
+                if normalized_lang not in probabilities:
+                    token_count = sum(1 for tl in token_analysis['token_languages'] if self._normalize_language_code(tl) == normalized_lang)
+                    total_tokens = len(token_analysis['token_languages'])
+                    estimated_prob = (token_count / total_tokens) * 0.5  # Scale down to be conservative
+                    probabilities[normalized_lang] = estimated_prob
+        
+        # Apply user language guidance
+        if user_languages:
+            user_lang_codes = [self._normalize_language_code(lang) for lang in user_languages]
+            # Boost confidence if user languages are detected
+            for user_lang in user_lang_codes:
+                if user_lang in detected_languages:
+                    primary_confidence = min(1.0, primary_confidence * 1.1)
+        
+        # Adjust confidence for code-mixed text (generally lower confidence)
+        if len(detected_languages) > 1:
+            primary_confidence *= 0.8  # Reduce confidence for mixed text
+        
+        return DetectionResult(
+            detected_languages=detected_languages,
+            confidence=float(primary_confidence),
+            probabilities=probabilities,
+            method='fasttext_codemixed',
+            switch_points=token_analysis.get('switch_points', []),
+            token_languages=token_analysis.get('token_languages', [])
+        )
     
     def get_model_info(self) -> Dict:
         """Get information about the loaded model."""

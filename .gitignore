@@ -169,8 +169,11 @@ data/
 embeddings/
 indices/
 faiss_indices/
-/documentation
+/dev_documentation
 tests/
+l3cube_data/
+.l3cube_cache
+investigation/
 
 # Database files
 *.db

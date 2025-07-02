@@ -14,6 +14,8 @@ class DetectionResult:
     confidence: float
     probabilities: Dict[str, float]
     method: str = "langdetect"
+    switch_points: Optional[List[int]] = None
+    token_languages: Optional[List[str]] = None
 
 
 class LanguageDetector:

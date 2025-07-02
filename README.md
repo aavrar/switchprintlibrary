@@ -1,31 +1,30 @@
 # SwitchPrint
 
-**Production-ready** Python library for detecting multilingual code-switching patterns with **100% test coverage**, advanced threshold systems, and robust API stability. Built with cutting-edge NLP techniques, featuring FastText integration, transformer models, and GPU-accelerated retrieval.
+Python library for detecting multilingual code-switching patterns. Features the **GeneralCSDetector** with improved code-switching detection performance compared to ensemble methods. Language-agnostic approach with observability for continuous refinement.
 
 [![PyPI version](https://badge.fury.io/py/switchprint.svg)](https://badge.fury.io/py/switchprint)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/switchprint)](https://pypi.org/project/switchprint/)
 [![Python](https://img.shields.io/badge/python-3.8+-brightgreen.svg)](https://python.org)
 [![Tests](https://img.shields.io/badge/tests-49%2F49%20passing-brightgreen.svg)](tests/)
-[![Production](https://img.shields.io/badge/status-production%20ready-brightgreen.svg)](README.md)
-[![Performance](https://img.shields.io/badge/speed-80x%20faster-red.svg)](README.md#performance)
+[![Development](https://img.shields.io/badge/status-active%20development-orange.svg)](documentation/PERFORMANCE_ANALYSIS.md)
+[![Performance](https://img.shields.io/badge/benchmarks-honest%20metrics-blue.svg)](documentation/PERFORMANCE_ANALYSIS.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🌟 Features
 
-### 🔍 Advanced Language Detection
-- **Multi-level Detection**: Word, phrase, and sentence-level language identification
-- **FastText Integration**: High-performance detection with 80x faster processing
-- **Transformer Support**: mBERT and XLM-R contextual detection for complex patterns
-- **Ensemble Methods**: Combines FastText, transformer, and rule-based approaches
-- **User Guidance**: Improved accuracy when user languages are specified
-- **Script Support**: Handles romanized text (Hindi, Urdu, Arabic) and native scripts
+### 🚀 **NEW: GeneralCSDetector**
+- **Improved Performance**: Code-switching F1 score of 0.643 vs ensemble's 0.098 on test dataset
+- **Multiple Languages**: Tested on European, Asian, Indian, Middle Eastern, African language pairs
+- **Direct Detection**: Avoids ensemble filtering issues that can reduce code-switching detection
+- **Observability**: Detailed analysis with `export_analysis()` for debugging and refinement
+- **Switch Point Detection**: Identifies language switching points within text
 
 ### 🔀 Code-Switch Analysis  
-- **Smart Switch Detection**: Identifies language switching points with confidence scoring
-- **Context-Aware Clustering**: mBERT Next Sentence Prediction for phrase grouping
-- **Adaptive Context**: Dynamic context windows based on text length
-- **Statistical Analysis**: Comprehensive switching pattern statistics
-- **Confidence Calibration**: Dynamic confidence adjustment based on text characteristics
+- **Cross-Language Validation**: Tested on European, Asian, Indian, Middle Eastern, African language pairs
+- **Smart Switch Detection**: Token-level analysis with confidence-weighted aggregation
+- **Word-Level Analysis**: Individual word language prediction with reasoning
+- **Context-Aware Detection**: Transformer + FastText fusion for optimal performance
+- **Quality Metrics**: Comprehensive performance measurement and calibration
 
 ### 💾 Enhanced Memory System
 - **Persistent Storage**: SQLite database with vector embeddings
@@ -77,7 +76,7 @@ pip install switchprint[all]
 
 **📦 Package Information:**
 - **PyPI**: [https://pypi.org/project/switchprint/](https://pypi.org/project/switchprint/)
-- **Latest Version**: 2.1.0 (Published July 2, 2025)
+- **Latest Version**: 2.1.1 (Published July 2, 2025)
 - **Automated Publishing**: Via GitHub Actions on release
 
 ### Development Installation
@@ -269,12 +268,18 @@ The `EnhancedCodeSwitchDetector` builds upon the TypeScript services analysis wi
 
 ## 🔬 Measured Performance Metrics
 
-### Detection Accuracy (Validated Test Results)
-- **100% Test Success Rate**: All 49 comprehensive tests passing
-- **Monolingual Detection**: 100% accuracy across English, Spanish, French, German, Chinese
-- **Code-Switching Detection**: 100% success on realistic social media patterns  
-- **Edge Case Handling**: 100% robustness for empty text, numbers, punctuation
-- **Security Integration**: 100% validation of PII detection and privacy protection
+### Detection Accuracy (Honest Performance Metrics)
+- **Test Suite**: 49/49 tests passing (basic functionality verified)
+- **Monolingual Detection**: 80-90% accuracy on common languages (English, Spanish, French)
+- **Code-Switching Detection**: **⚠️ Under Development** - Current: 15-70% F1 depending on detector
+- **L3Cube Benchmark**: 66-69% accuracy (vs published baselines: 92-98%)
+- **Performance Gap**: 25-33% below academic benchmarks - **active improvement in progress**
+
+### Current Limitations & Active Development
+- **Code-Mixed Text**: Primary area for improvement - working on multi-language detection
+- **Romanization**: Hindi/Urdu transliteration accuracy improving (current: 60-65%)
+- **Switch Points**: Token-level detection being implemented
+- **See**: [Performance Analysis](documentation/PERFORMANCE_ANALYSIS.md) for detailed improvement plan
 
 ### Speed Benchmarks (MacBook Pro M2)
 - **FastText**: 0.1-0.6ms per detection

@@ -7,6 +7,7 @@ from .optimized_detector import OptimizedCodeSwitchDetector, OptimizedResult
 from .fasttext_detector import FastTextDetector
 from .transformer_detector import TransformerDetector
 from .ensemble_detector import EnsembleDetector, EnsembleResult
+from .general_cs_detector import GeneralCodeSwitchingDetector, GeneralCSResult, WordAnalysis
 from .switch_point_refiner import SwitchPointRefiner, SwitchPoint, RefinementResult, LinguisticFeatureAnalyzer
 
 # Zero-shot detection (optional)
@@ -24,14 +25,17 @@ __all__ = [
     "FastTextDetector",
     "TransformerDetector",
     "EnsembleDetector",
+    "GeneralCodeSwitchingDetector",  # NEW: Primary CS detector
     "SwitchPointRefiner",
     "PhraseCluster",
     "EnhancedDetectionResult",
     "OptimizedResult",
     "EnsembleResult",
+    "GeneralCSResult",  # NEW: Rich result type
     "SwitchPoint",
     "RefinementResult",
-    "LinguisticFeatureAnalyzer"
+    "LinguisticFeatureAnalyzer",
+    "WordAnalysis"  # NEW: Observability component
 ]
 
 # Add zero-shot components if available

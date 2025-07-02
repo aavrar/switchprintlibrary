@@ -5,6 +5,30 @@ All notable changes to the Code-Switch Aware AI Library are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-07-02
+
+### 📚 **Documentation & Examples Update**
+- **Updated**: Complete overhaul of examples directory with production API
+- **Added**: Advanced usage examples with enterprise security features
+- **Updated**: EXAMPLES.md with comprehensive real-world use cases
+- **Added**: Performance benchmarking and ensemble strategy comparison
+- **Updated**: Basic usage examples with current threshold system API
+- **Improved**: Error handling and import validation in examples
+
+### 🔧 **Example Enhancements**
+- **Added**: Security pipeline demonstration in basic examples
+- **Added**: Custom threshold profile configuration examples
+- **Added**: Enterprise security and privacy protection workflows
+- **Added**: Conversation memory and retrieval system examples
+- **Updated**: All import statements to use current production API
+- **Added**: Comprehensive error handling and fallback examples
+
+### 📦 **Package Readiness**
+- **Prepared**: Version 2.1.1 for PyPI publication
+- **Validated**: All examples work with current API
+- **Confirmed**: Documentation accuracy with implemented features
+- **Ready**: Production deployment with updated examples
+
 ## [2.1.0] - 2025-07-02
 
 ### 🎉 **100% Test Coverage Milestone**
