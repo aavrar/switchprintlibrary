@@ -103,7 +103,8 @@ class FastTextDetector(LanguageDetector):
         if not text.strip():
             return ""
         
-        processed = text.lower()
+        # Don't lowercase - FastText is case-sensitive and capitalization is important for detection
+        processed = text
         
         for pattern, replacement in self.preprocessing_patterns:
             processed = re.sub(pattern, replacement, processed)

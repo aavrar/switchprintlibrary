@@ -172,31 +172,3 @@ Storage: SQLite or lightweight DB for metadata, vector DB for embeddings.
 
 Deployment: Local dev environment with optional cloud deployment on scalable platforms respecting data privacy.
 
-Development Roadmap (Phased)
-Phase 1: Language Detection & Basic Memory
-Implement fine-grained language and switch-point detection.
-
-Generate embeddings and store with metadata.
-
-Build CLI or simple web UI showing language detection and memory retrieval.
-
-Phase 2: Hybrid Retrieval & Style Profiling
-Develop hybrid search combining embeddings with style metadata filters.
-
-Build user style profile vectors capturing temporal evolution.
-
-Visualize user code-switch patterns over time.
-
-Phase 3: Style-Adaptive Generation
-Integrate retrieval with GPT-style generation conditioned on user style memory.
-
-Implement fallback rule-based mimicry as a baseline.
-
-Enable multi-turn interactions maintaining style consistency.
-
-Phase 4: User Control & Privacy
-Add memory edit/delete/annotation features.
-
-Design privacy-first data handling and user consent mechanisms.
-
-Conduct user testing with bilingual speakers to evaluate effectiveness.

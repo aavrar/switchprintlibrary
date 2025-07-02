@@ -308,7 +308,7 @@ class LinCEBenchmark:
             
             # Count correct switch points (simplified evaluation)
             for sp in true_switch_points:
-                if sp in pred_switch_points or abs(min(pred_switch_points, key=lambda x: abs(x-sp)) - sp) <= 1:
+                if pred_switch_points and (sp in pred_switch_points or abs(min(pred_switch_points, key=lambda x: abs(x-sp)) - sp) <= 1):
                     correct_switch_points += 1
         
         # Calculate metrics
