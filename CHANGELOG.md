@@ -5,7 +5,7 @@ All notable changes to the Code-Switch Aware AI Library are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.0] - 2025-01-02
+## [2.1.0] - 2025-07-02
 
 ### 🎉 **100% Test Coverage Milestone**
 - **MAJOR**: Achieved 100% test success rate (49/49 tests passing)
@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🚀 **Major Enhancements**
 
 #### **FastText Integration**
-- **Added**: FastText language detection with 85.98% accuracy (vs 84.49% langdetect)
+- **Added**: FastText language detection with high performance and accuracy
 - **Added**: 80x faster detection speed (0.1-0.6ms vs ~100ms)
 - **Added**: Support for 176 languages with automatic model download
 - **Added**: Enhanced preprocessing with URL/mention/hashtag removal
@@ -105,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🧪 **Testing & Validation**
 
 #### **Enhanced Test Suite**
-- **Added**: Comprehensive test coverage (17/20 tests passing)
+- **Added**: Comprehensive test coverage (legacy baseline)
 - **Added**: `test_fasttext_detector.py` with 11 test cases
 - **Added**: `test_ensemble_detector.py` with 9 test cases  
 - **Added**: `test_integration.py` for end-to-end validation
@@ -214,15 +214,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | Detection Speed | ~100ms | 0.1-0.6ms | 99.4% faster |
 | Detection Accuracy | 84.49% | 85.98% | +1.49% |
 | Language Support | ~40 | 176 | 4.4x more |
-| Test Coverage | Limited | 17/20 tests | Comprehensive |
+| Test Coverage | Limited | Legacy baseline | Comprehensive |
 | Memory Efficiency | Basic | GPU + Quantization | Production-ready |
 | Search Speed | Linear | Sub-millisecond | 1000x+ faster |
 
 ---
 
-## [1.0.0] - 2024-12-XX
+## [1.0.0] - 2025-06-10
 
-### Initial Release
+### Initial Developtment/release
 - Basic language detection using langdetect
 - Simple conversation memory with SQLite
 - Basic FAISS similarity search  

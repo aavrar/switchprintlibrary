@@ -1,28 +1,266 @@
 # SwitchPrint Examples and Use Cases
 
-This document provides comprehensive examples and real-world use cases for SwitchPrint v2.1.0.
+This document provides comprehensive examples for SwitchPrint v2.1.1, combining both basic and advanced functionality.
 
 **Current Status**: Production-ready with 100% test coverage  
-**Installation**: `pip install switchprint==2.1.0`
+**Installation**: `pip install switchprint==2.1.1`
 
 ## 🚀 Quick Start Examples
 
 ### Basic Language Detection
 
 ```python
-# Install: pip install switchprint
 from codeswitch_ai import EnsembleDetector
 
-# Initialize detector
-detector = EnsembleDetector()
+# Initialize with FastText only for speed
+detector = EnsembleDetector(
+    use_fasttext=True,
+    use_transformer=False,
+    ensemble_strategy="weighted_average"
+)
 
 # Simple detection
-text = "Hello, ¿cómo estás? I'm doing bien."
-result = detector.detect_language(text)
+result = detector.detect_language("Hello, ¿cómo estás? I'm doing bien.")
 
-print(f"Languages: {result.detected_languages}")
-print(f"Confidence: {result.confidence:.2%}")
-print(f"Switch points: {result.switch_points}")
+print(f"Detected languages: {result.detected_languages}")
+print(f"Confidence: {result.confidence:.1%}")
+print(f"Method: {result.method}")
+
+```
+## ⚡ High-Speed Detection (FastText Only)
+
+```python
+from codeswitch_ai import FastTextDetector
+
+detector = FastTextDetector()
+result = detector.detect_language("Main ghar ja raha hoon but I will come back")
+
+print(f"Detected languages: {result.detected_languages}")
+print(f"Confidence: {result.confidence:.1%}")
+print(f"Probabilities: {getattr(result, 'probabilities', 'N/A')}")
+
+```
+
+### 📊 Advanced Configuration
+
+## 🧮 Threshold Mode Analysis
+
+```python
+from codeswitch_ai import EnsembleDetector, ThresholdConfig, DetectionMode
+
+modes = [
+    (DetectionMode.HIGH_PRECISION, "High Precision"),
+    (DetectionMode.BALANCED, "Balanced"),
+    (DetectionMode.HIGH_RECALL, "High Recall")
+]
+
+text = "Je suis tired today. Need some café."
+
+for mode, description in modes:
+    config = ThresholdConfig(mode=mode)
+    detector = EnsembleDetector(threshold_config=config)
+    result = detector.detect_language(text)
+    print(f"{description:15} | {', '.join(result.detected_languages):15} | {result.confidence:.1%}")
+
+```
+
+## 🎯 Custom Threshold Profiles
+
+```python
+from codeswitch_ai import ThresholdProfile, ThresholdConfig, EnsembleDetector
+
+profiles = [
+    ThresholdProfile(
+        name="Conservative",
+        monolingual_min_confidence=0.9,
+        multilingual_primary_confidence=0.8
+    ),
+    ThresholdProfile(
+        name="Aggressive",
+        monolingual_min_confidence=0.5,
+        multilingual_primary_confidence=0.4
+    )
+]
+
+for profile in profiles:
+    config = ThresholdConfig(custom_profile=profile)
+    detector = EnsembleDetector(threshold_config=config)
+    result = detector.detect_language("Maybe this is english or maybe not")
+    print(f"{profile.name:12} | {', '.join(result.detected_languages):15} | {result.confidence:.1%}")
+
+```
+### 🔍 Real-World Use Cases
+
+## 🗣️ Multilingual Conversation Analysis
+
+```python
+from codeswitch_ai import EnsembleDetector, ConversationMemory
+
+# Initialize components
+detector = EnsembleDetector()
+memory = ConversationMemory(db_path="conversations.db")
+
+# Store and analyze conversations
+conversations = [
+    "Hello, ¿cómo estás? I'm doing bien today.",
+    "Je suis tired but need to trabajo.",
+    "Main office ja raha hoon, see you later."
+]
+
+for text in conversations:
+    result = detector.detect_language(text)
+    memory.create_and_store_conversation(
+        text=text,
+        user_id='demo_user',
+        switch_stats={
+            'detected_languages': result.detected_languages,
+            'confidence': result.confidence
+        }
+    )
+
+```
+
+## 🛡️ Enterprise Security Pipeline
+
+```python
+from codeswitch_ai import (
+    PrivacyProtector, 
+    SecurityMonitor, 
+    InputValidator,
+    FastTextDetector
+)
+
+# Initialize security components
+privacy_protector = PrivacyProtector()
+security_monitor = SecurityMonitor()
+input_validator = InputValidator()
+detector = FastTextDetector()
+
+text = "Hello, my email is john@example.com"
+
+# Full processing pipeline
+validation = input_validator.validate(text)
+if validation.is_valid:
+    privacy_result = privacy_protector.protect_text(validation.sanitized_text)
+    detection_result = detector.detect_language(privacy_result['protected_text'])
+    security_monitor.process_request(
+        source_id="demo_request",
+        request_data={'text_length': len(text)},
+        user_id="demo_user"
+    )
+
+```
+
+### ⚙️ Performance Optimization
+
+## ⏱️ Benchmarking Different Detectors
+
+```python
+import time
+from codeswitch_ai import FastTextDetector, EnsembleDetector
+
+detectors = [
+    ("FastText", FastTextDetector()),
+    ("Ensemble", EnsembleDetector(use_fasttext=True, use_transformer=False))
+]
+
+test_text = "Hello, ¿cómo estás? Je suis tired today."
+iterations = 100
+
+for name, detector in detectors:
+    start = time.time()
+    for _ in range(iterations):
+        detector.detect_language(test_text)
+    avg_time = (time.time() - start) / iterations
+    print(f"{name:12} | {avg_time*1000:6.2f}ms per detection")
+
+```
+
+## 🧠 Ensemble Strategy Comparison
+
+```python
+from codeswitch_ai import EnsembleDetector
+
+strategies = ["weighted_average", "voting", "confidence_based"]
+test_text = "Hello, ¿cómo estás? Je suis bien."
+
+for strategy in strategies:
+    detector = EnsembleDetector(ensemble_strategy=strategy)
+    result = detector.detect_language(test_text)
+    print(f"{strategy:18} | {', '.join(result.detected_languages):20} | {result.confidence:.1%}")
+
+```
+
+### 🔧 Configuration Examples
+## 🏗️ Production-Ready Setup
+
+```python
+from codeswitch_ai import (
+    EnsembleDetector,
+    PrivacyProtector,
+    SecurityMonitor,
+    ThresholdConfig,
+    DetectionMode
+)
+
+# Production configuration
+detector = EnsembleDetector(
+    use_fasttext=True,
+    use_transformer=False,
+    threshold_config=ThresholdConfig(mode=DetectionMode.HIGH_PRECISION),
+    cache_size=5000
+)
+
+privacy_protector = PrivacyProtector()
+security_monitor = SecurityMonitor(log_file="security.log")
+
+```
+
+### 📚 Integration Examples
+## 🌐 Flask API Endpoint
+
+```python
+from flask import Flask, request, jsonify
+from codeswitch_ai import EnsembleDetector
+
+app = Flask(__name__)
+detector = EnsembleDetector()
+
+@app.route('/detect', methods=['POST'])
+def detect():
+    text = request.json.get('text', '')
+    result = detector.detect_language(text)
+    return jsonify({
+        'languages': result.detected_languages,
+        'confidence': result.confidence,
+        'method': result.method
+    })
+
+if __name__ == '__main__':
+    app.run()
+
+```
+
+## 💻 Command Line Interface
+
+```python
+import argparse
+from codeswitch_ai import FastTextDetector
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('text', help='Text to analyze')
+    args = parser.parse_args()
+    
+    detector = FastTextDetector()
+    result = detector.detect_language(args.text)
+    
+    print(f"Detected languages: {', '.join(result.detected_languages)}")
+    print(f"Confidence: {result.confidence:.1%}")
+
+if __name__ == '__main__':
+    main()
+
 ```
 
 ### Advanced Detection with User Context
